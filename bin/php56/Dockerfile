@@ -39,16 +39,24 @@ RUN docker-php-ext-install curl \
     && pecl install xdebug-2.5.5 && docker-php-ext-enable xdebug \
     && echo "xdebug.remote_enable=1" >> /usr/local/etc/php/php.ini
 
-# Insure an SSL directory exists
-RUN mkdir -p /etc/apache2/ssl
-
-# Enable SSL support
-RUN a2enmod ssl && a2enmod rewrite
-
 # Enable apache modules
 RUN a2enmod rewrite headers
 
+# Enable apache ssl
+RUN mkdir -p /etc/apache2/ssl/
+RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj \
+    "/C=../ST=...../L=..../O=..../CN=..." \
+    -keyout /etc/apache2/ssl/ssl.key -out /etc/apache2/ssl/ssl.crt
+RUN mkdir -p /var/run/apache2/
+RUN a2enmod ssl \
+    && a2ensite default-ssl \
+    && c_rehash /etc/apache2/ssl/
+
+# Fix Permissions
+RUN usermod -u 1000 www-data
+
 EXPOSE 80
+
 EXPOSE 443
 
 ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

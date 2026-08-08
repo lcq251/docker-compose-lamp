@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# lamp-claro entrypoint
+# 启动 Apache 前修复挂载树 /var/www/html 的权限错乱与缺失资源,
+# 然后移交官方 docker-php-entrypoint 启动 Apache。
+#
+# 背景(2026-08-05 排查结论):
+#   - 目录被设成全写缺 x(776),Apache(www-data, uid 1000, 归 other)
+#     进不了目录读 .htaccess -> "Server unable to read htaccess file"
+#   - var/ 属主错乱 -> Symfony 写 cache/log 失败
+#   - themes/claroline 缺 node_modules 链接 -> tinymce skins 404
+#   - logo-sm.svg 未拷到 public 根 -> 404
+#
+set -euo pipefail
+
+WEBROOT="${WEBROOT:-/var/www/html}"
+
+echo "[entrypoint] === lamp-claro startup ==="
+
+if [ -d "${WEBROOT}" ]; then
+  # 1) 目录补执行位(属主或 other 缺 x 都统一 755):
+  #    www-data(uid 1000, 归 other)需要 x 才能进入目录读取 .htaccess;
+  #    宿主用户是属主,缺 x 同样会把自己锁在外面
+  find "${WEBROOT}" -type d \( ! -perm -u+x -o ! -perm -o+x \) -exec chmod 755 {} + 2>/dev/null || true
+  # 2) 文件补读位
+  find "${WEBROOT}" -type f \( ! -perm -u+r -o ! -perm -o+r \) -exec chmod 644 {} + 2>/dev/null || true
+  # 3) Symfony 运行时目录(var/cache, var/log, var/tmp)归 www-data
+  if [ -d "${WEBROOT}/var" ]; then
+    chown -R www-data:www-data "${WEBROOT}/var" 2>/dev/null || true
+  fi
+fi
+
+# 4) tinymce skins 路径:themes/claroline/node_modules -> node_modules
+THEME_DIR="${WEBROOT}/public/themes/claroline"
+if [ -d "${WEBROOT}/node_modules" ] && [ -d "${THEME_DIR}" ] && [ ! -e "${THEME_DIR}/node_modules" ]; then
+  ln -s "${WEBROOT}/node_modules" "${THEME_DIR}/node_modules"
+  echo "[entrypoint] created ${THEME_DIR}/node_modules symlink"
+fi
+
+# 5) 首页 logo:源文件未随构建产物落到 public 根
+LOGO_SRC="${WEBROOT}/src/main/core/Resources/public/images/logos/logo-sm.svg"
+if [ -f "${LOGO_SRC}" ] && [ ! -f "${WEBROOT}/public/logo-sm.svg" ]; then
+  cp "${LOGO_SRC}" "${WEBROOT}/public/logo-sm.svg"
+  chmod 644 "${WEBROOT}/public/logo-sm.svg"
+  echo "[entrypoint] copied logo-sm.svg to public root"
+fi
+
+# 6) 移交官方入口(保留 APACHE_DOCUMENT_ROOT 等环境变量处理)
+exec docker-php-entrypoint "$@"

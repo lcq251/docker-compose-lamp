@@ -20,7 +20,6 @@ RUN apt-get -y update --fix-missing && \
     apt-get --no-install-recommends install -y apt-utils && \
     rm -rf /var/lib/apt/lists/*
 
-
 # Install useful tools and install important libaries
 RUN apt-get -y update && \
     apt-get -y --no-install-recommends install nano wget dialog libsqlite3-dev libsqlite3-0 && \
@@ -42,11 +41,11 @@ RUN pecl install redis-5.0.2 && \
 
 RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install pdo_sqlite && \
-    docker-php-ext-install bcmath && \
     docker-php-ext-install mysqli && \
     docker-php-ext-install curl && \
     docker-php-ext-install tokenizer && \
     docker-php-ext-install json && \
+    docker-php-ext-install bcmath && \
     docker-php-ext-install zip && \
     docker-php-ext-install -j$(nproc) intl && \
     docker-php-ext-install mbstring && \
@@ -59,14 +58,21 @@ RUN apt-get -y update && \
     docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ && \
     docker-php-ext-install -j$(nproc) gd
 
-# Insure an SSL directory exists
-RUN mkdir -p /etc/apache2/ssl
-
-# Enable SSL support
-RUN a2enmod ssl && a2enmod rewrite
-
 # Enable apache modules
 RUN a2enmod rewrite headers
+
+# Enable apache ssl
+RUN mkdir -p /etc/apache2/ssl/
+RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 -subj \
+    "/C=../ST=...../L=..../O=..../CN=..." \
+    -keyout /etc/apache2/ssl/ssl.key -out /etc/apache2/ssl/ssl.crt
+RUN mkdir -p /var/run/apache2/
+RUN a2enmod ssl \
+    && a2ensite default-ssl \
+    && c_rehash /etc/apache2/ssl/
+
+# Fix Permissions
+RUN usermod -u 1000 www-data
 
 # Cleanup
 RUN rm -rf /usr/src/*

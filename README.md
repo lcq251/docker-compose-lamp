@@ -1,188 +1,199 @@
-# LAMP stack built with Docker Compose
+# docker-compose-lamp - lamp stack environment for developer
 
-![Landing Page](https://user-images.githubusercontent.com/43859895/141092846-905eae39-0169-4fd7-911f-9ff32c48b7e8.png)
+![screenshot](https://raw.githubusercontent.com/robertsaupe/docker-compose-lamp/master/.github/screenshot.png)
 
-A basic LAMP stack environment built using Docker Compose. It consists of the following:
+[Supporting](https://github.com/robertsaupe/docker-compose-lamp#supporting) |
+[Features](https://github.com/robertsaupe/docker-compose-lamp#features) |
+[License](https://github.com/robertsaupe/docker-compose-lamp#license) |
+[Installing](https://github.com/robertsaupe/docker-compose-lamp#installing) |
+[Getting started](https://github.com/robertsaupe/docker-compose-lamp#getting-started) |
+[Credits](https://github.com/robertsaupe/docker-compose-lamp#credits)
 
-- PHP
-- Apache
-- MySQL
+## Supporting
+
+[GitHub](https://github.com/sponsors/robertsaupe) |
+[Patreon](https://www.patreon.com/robertsaupe) |
+[PayPal](https://www.paypal.com/donate?hosted_button_id=SQMRNY8YVPCZQ) |
+[Amazon](https://www.amazon.de/ref=as_li_ss_tl?ie=UTF8&linkCode=ll2&tag=robertsaupe-21&linkId=b79bc86cee906816af515980cb1db95e&language=de_DE)
+
+## Features
+
+- Apache with vhosts and SSL (<http://localhost> & <https://localhost>)
+- PHP [Currently Supported Versions] (8.1.x, 8.2.x, 8.3.x)
+- PHP [End of life / not recommended] (5.4.x, 5.6.x, 7.0.x, 7.1.x, 7.2.x, 7.3.x, 7.4.x, 8.0.x)
+- MySQL (5.7, 8.x)
+- MariaDB (lts, latest, 10.x, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 11.x, 11.0, 11.1, 11.2, 11.3-rc)
 - phpMyAdmin
+- XDebug
+- Imagick
 - Redis
 
-As of now, we have several different PHP versions. Use appropriate php version as needed:
+## License
 
-- 5.4.x
-- 5.6.x
-- 7.1.x
-- 7.2.x
-- 7.3.x
-- 7.4.x
-- 8.0.x
-- 8.1.x
-- 8.2.x
-- 8.3.x
-- 8.4.x
+This software is distributed under the MIT license. Please read [LICENSE](LICENSE) for information.
 
-## Installation
+## Installing
 
-- Clone this repository on your local computer
-- configure .env as needed
-- Run the `docker compose up -d`.
+### German introduction / deutsche Einleitung
 
-```shell
-git clone https://github.com/sprintcube/docker-compose-lamp.git
+[blog.robertsaupe.de/docker-compose](https://blog.robertsaupe.de/docker-compose/)
+
+### Requirements
+
+- Debian/Ubuntu
+
+```bash
+sudo apt install docker
+sudo apt install docker-compose
+```
+
+- Arch/Manjaro
+
+```bash
+sudo pacman -S docker
+sudo pacman -S docker-compose
+```
+
+- Fedora
+
+```bash
+sudo dnf install docker
+sudo dnf install docker-compose
+```
+
+- macOS
+  - Install Docker Desktop according to [these instructions](https://docs.docker.com/desktop/mac/install/).
+
+- Windows
+  - Install Docker Desktop according to [these instructions](https://docs.docker.com/desktop/windows/install/).
+
+### Service (Linux)
+
+```bash
+sudo systemctl start docker.service
+sudo systemctl enable docker.service
+```
+
+### Run without root (Linux)
+
+```bash
+sudo usermod -aG docker $USER
+sudo reboot
+```
+
+### Environment
+
+```bash
+git clone https://github.com/robertsaupe/docker-compose-lamp.git
 cd docker-compose-lamp/
 cp sample.env .env
-// modify sample.env as needed
-docker compose up -d
-// visit localhost
+
+### modify .env as needed
+
+### builds and starts the environment:
+./build.sh
+
+### starts the environment:
+./start.sh
+
+### stops the environment:
+./stop.sh
 ```
 
-Your LAMP stack is now ready!! You can access it via `http://localhost`.
+#### on Windows (with WSL) Explorer
 
-## Configuration and Usage
+```cmd
+### builds and starts the environment:
+build.cmd
 
-### General Information
+### starts the environment:
+start.cmd
 
-This Docker Stack is build for local development and not for production usage.
-
-### Configuration
-
-This package comes with default configuration options. You can modify them by creating `.env` file in your root directory.
-To make it easy, just copy the content from `sample.env` file and update the environment variable values as per your need.
-
-### Configuration Variables
-
-There are following configuration variables available and you can customize them by overwritting in your own `.env` file.
-
----
-
-#### PHP
-
----
-
-_**PHPVERSION**_
-Is used to specify which PHP Version you want to use. Defaults always to latest PHP Version.
-
-_**PHP_INI**_
-Define your custom `php.ini` modification to meet your requirments.
-
----
-
-#### Apache
-
----
-
-_**DOCUMENT_ROOT**_
-
-It is a document root for Apache server. The default value for this is `./www`. All your sites will go here and will be synced automatically.
-
-_**APACHE_DOCUMENT_ROOT**_
-
-Apache config file value. The default value for this is /var/www/html.
-
-_**VHOSTS_DIR**_
-
-This is for virtual hosts. The default value for this is `./config/vhosts`. You can place your virtual hosts conf files here.
-
-> Make sure you add an entry to your system's `hosts` file for each virtual host.
-
-_**APACHE_LOG_DIR**_
-
-This will be used to store Apache logs. The default value for this is `./logs/apache2`.
-
----
-
-#### Database
-
----
-
-> For Apple Silicon Users:
-> Please select Mariadb as Database. Oracle doesn't build their SQL Containers for the arm Architecture
-
-_**DATABASE**_
-
-Define which MySQL or MariaDB Version you would like to use.
-
-_**MYSQL_INITDB_DIR**_
-
-When a container is started for the first time files in this directory with the extensions `.sh`, `.sql`, `.sql.gz` and
-`.sql.xz` will be executed in alphabetical order. `.sh` files without file execute permission are sourced rather than executed.
-The default value for this is `./config/initdb`.
-
-_**MYSQL_DATA_DIR**_
-
-This is MySQL data directory. The default value for this is `./data/mysql`. All your MySQL data files will be stored here.
-
-_**MYSQL_LOG_DIR**_
-
-This will be used to store Apache logs. The default value for this is `./logs/mysql`.
-
-_**MYSQL_CNF**_
-
-Define your custom `my.cnf` modifications to meet your database requirments.
-
-**Note:**
-When providing "host" value to the application, eg. wordpress, please use the value `database` where we generally use `localhost`
-
-## Web Server
-
-Apache is configured to run on port 80. So, you can access it via `http://localhost`.
-
-#### Apache Modules
-
-By default following modules are enabled.
-
-- rewrite
-- headers
-
-> If you want to enable more modules, just update `./bin/phpX/Dockerfile`. You can also generate a PR and we will merge if seems good for general purpose.
-> You have to rebuild the docker image by running `docker compose build` and restart the docker containers.
-
-#### Connect via SSH
-
-You can connect to web server using `docker compose exec` command to perform various operation on it. Use below command to login to container via ssh.
-
-```shell
-docker compose exec webserver bash
+### stops the environment:
+stop.cmd
 ```
 
-## PHP
+## Getting started
 
-The installed version of php depends on your `.env`file.
+### Visit
 
-#### Extensions
+#### insecure
 
-By default following extensions are installed.
-May differ for PHP Versions <7.x.x
+- Dashboard
+  - [http://localhost](http://localhost)
 
-- mysqli
-- pdo_sqlite
-- pdo_mysql
-- mbstring
-- zip
-- intl
-- mcrypt
-- curl
-- json
-- iconv
-- xml
-- xmlrpc
-- gd
+- phpMyAdmin
+  - [http://localhost:8080](http://localhost:8080)
 
-> If you want to install more extension, just update `./bin/webserver/Dockerfile`. You can also generate a PR and we will merge if it seems good for general purpose.
-> You have to rebuild the docker image by running `docker compose build` and restart the docker containers.
+- virtual domains
+  - [http://dash.localhost](http://dash.localhost)
+  - [http://app.localhost](http://app.localhost)
+  - [http://projects.localhost](http://projects.localhost)
 
-## phpMyAdmin
+##### secure
 
-phpMyAdmin is configured to run on port 8080. Use following default credentials.
+- Dashboard
+  - [https://localhost](https://localhost)
 
-http://localhost:8080/  
-username: root  
-password: tiger
+- phpMyAdmin
+  - [https://localhost:8443](https://localhost:8443)
 
-## Xdebug
+- virtual domains
+  - [https://dash.localhost](https://dash.localhost)
+  - [https://app.localhost](https://app.localhost)
+  - [https://projects.localhost](https://projects.localhost)
+
+In order to use the above URL, you still need to change the hosts file.
+
+### SSL (HTTPS)
+
+Support for https domains is built-in and enabled by default.
+
+### Virtual-Hosts
+
+#### Linux/macOS
+
+```bash
+sudo nano /etc/hosts
+```
+
+#### Windows
+
+You can just use Notepad for this. To do this, right-click on "Run as administrator" in the start menu. Then go to Open, show all files and navigate to the folder **C:\Windows\System32\drivers\etc**. Now you can open and edit the **hosts** file.
+
+#### hosts-file
+
+```text
+...
+127.0.0.1  dash.localhost
+127.0.0.1  projects.localhost
+127.0.0.1  app.localhost
+...
+```
+
+### Database
+
+#### PHP Access
+
+```php
+<?php
+//some before
+$db_hostname="database";
+//some after
+?>
+```
+
+#### MYSQL_INITDB_DIR
+
+```text
+When a container is started for the first time files in this directory with the extensions:
+.sh, .sql, .sql.gz and .sql.xz
+will be executed in alphabetical order.
+
+default location is ./config/initdb
+```
+
+### Xdebug
 
 Xdebug comes installed by default and it's version depends on the PHP version chosen in the `".env"` file.
 
@@ -196,7 +207,7 @@ To use Xdebug you need to enable the settings in the `./config/php/php.ini` file
 
 Example:
 
-```
+```text
 # Xdebug 2
 #xdebug.remote_enable=1
 #xdebug.remote_autostart=1
@@ -241,59 +252,9 @@ Now, make a breakpoint and run debug.
 
 **Tip!** After theses configurations, you may need to restart container.
 
-## Redis
+### Redis
 
 It comes with Redis. It runs on default port `6379`.
-
-## SSL (HTTPS)
-
-Support for `https` domains is built-in but disabled by default. There are 3 ways you can enable and configure SSL; `https` on `localhost` being the easiest. If you are trying to recreating a testing environment as close as possible to a production environment, any domain name can be supported with more configuration.
-
-**Notice:** For every non-localhost domain name you wish to use `https` on, you will need to modify your computers [hosts file](https://en.wikipedia.org/wiki/Hosts_%28file%29) and point the domain name to `127.0.0.1`. If you fail to do this SSL will not work and you will be routed to the internet every time you try to visit that domain name locally.
-
-### 1) HTTPS on Localhost
-
-To enable `https` on `localhost` (https://localhost) you will need to:
-
-1. Use a tool like [mkcert](https://github.com/FiloSottile/mkcert#installation) to create an SSL certificate for `localhost`:
-   - With `mkcert`, in the terminal run `mkcert localhost 127.0.0.1 ::1`.
-   - Rename the files that were generated `cert.pem` and `cert-key.pem` respectively.
-   - Move these files into your docker setup by placing them in `config/ssl` directory.
-2. Uncomment the `443` vhost in `config/vhosts/default.conf`.
-
-Done. Now any time you turn on your LAMP container `https` will work on `localhost`.
-
-### 2) HTTPS on many Domains with a Single Certificate
-
-If you would like to use normal domain names for local testing, and need `https` support, the simplest solution is an SSL certificate that covers all the domain names:
-
-1. Use a tool like [mkcert](https://github.com/FiloSottile/mkcert#installation) to create an SSL certificate that covers all the domain names you want:
-   - With `mkcert`, in the terminal run `mkcert example.com "*.example.org" myapp.dev localhost 127.0.0.1 ::1` where you replace all the domain names and IP addresses to the ones you wish to support.
-   - Rename the files that were generated `cert.pem` and `cert-key.pem` respectively.
-   - Move these files into your docker setup by placing them in `config/ssl` directory.
-2. Uncomment the `443` vhost in `config/vhosts/default.conf`.
-
-Done. Since you combined all the domain names into a single certificate, the vhost file will support your setup without needing to modify it further. You could add domain specific rules if you wish however. Now any time you turn on your LAMP container `https` will work on all the domains you specified.
-
-### 3) HTTPS on many Domain with Multiple Certificates
-
-If you would like your local testing environment to exactly match your production, and need `https` support, you could create an SSL certificate for every domain you wish to support:
-
-1. Use a tool like [mkcert](https://github.com/FiloSottile/mkcert#installation) to create an SSL certificate that covers the domain name you want:
-   - With `mkcert`, in the terminal run `mkcert [your-domain-name(s)-here]` replacing the bracket part with your domain name.
-   - Rename the files that were generated to something unique like `[name]-cert.pem` and `[name]-cert-key.pem` replacing the bracket part with a unique name.
-   - Move these files into your docker setup by placing them in `config/ssl` directory.
-2. Using the `443` example from the vhost file (`config/vhosts/default.conf`), make new rules that match your domain name and certificate file names.
-
-Done. The LAMP container will auto pull in any SSL certificates in `config/ssl` when it starts. As long as you configure the vhosts file correctly and place the SSL certificates in `config/ssl`, any time you turn on your LAMP container `https` will work on your specified domains.
-
-## Contributing
-
-We are happy if you want to create a pull request or help people with their issues. If you want to create a PR, please remember that this stack is not built for production usage, and changes should be good for general purpose and not overspecialized.
-
-> Please note that we simplified the project structure from several branches for each php version, to one centralized master branch. Please create your PR against master branch.
->
-> Thank you!
 
 ## Why you shouldn't use this stack unmodified in production
 
@@ -302,3 +263,7 @@ In Production you should modify at a minimum the following subjects:
 
 - php handler: mod_php=> php-fpm
 - secure mysql users with proper source IP limitations
+
+## Credits
+
+- forked from <https://github.com/sprintcube/docker-compose-lamp>
