@@ -1,8 +1,9 @@
-/.env
 /.vscode
-/config/*
-/data/*
-/logs/*
-/www/**
+/.env
 .DS_Store
-/buildtest
+/logs/apache2/*
+/logs/mysql/*
+/data/mysql/*
+
+!.gitignore
+!.gitkeep
