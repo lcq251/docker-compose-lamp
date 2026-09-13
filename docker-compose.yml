@@ -116,6 +116,35 @@ services:
     volumes: 
       - /sessions
       - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/conf.d/php-phpmyadmin.ini
+  # ai-avatar-bot：Live2D 语音虚拟人组件（静态前端，build 自 src/ai-avatar-bot）
+  ai-avatar-bot:
+    build:
+      context: ../src/ai-avatar-bot
+      dockerfile: Dockerfile
+    container_name: '${COMPOSE_PROJECT_NAME}-ai-avatar-bot'
+    restart: 'always'
+    # 通过 nginx 代理访问，不直接暴露宿主机端口。
+    # 自备 Live2D 模型（haru 已下载到 models/），data-model 指向 /models/haru/haru_greeter_t03.model3.json：
+    volumes:
+      - ../src/ai-avatar-bot/models:/usr/share/nginx/html/models:ro
+  # edge-tts：微软 Edge 免费神经语音合成（大陆可达），供数字老师 TTS 使用
+  edge-tts:
+    build:
+      context: ../src/edge-tts
+      dockerfile: Dockerfile
+    container_name: '${COMPOSE_PROJECT_NAME}-edge-tts'
+    restart: 'always'
+  # nginx：ai-avatar-bot 的反向代理统一入口（未来可加 auth_request 鉴权）
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: '${COMPOSE_PROJECT_NAME}-nginx'
+    restart: 'always'
+    ports:
+      - "${HOST_MACHINE_AVATAR_PORT:-8081}:80"
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d:ro
+    depends_on:
+      - ai-avatar-bot
 #  redis:
 #    image: redis:latest
 #    container_name: '${COMPOSE_PROJECT_NAME}-redis'
